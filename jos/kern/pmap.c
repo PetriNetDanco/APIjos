@@ -101,7 +101,7 @@ boot_alloc(uint32_t n)
 	// nextfree.  Make sure nextfree is kept aligned
 	// to a multiple of PGSIZE.
 	//
-	// LAB 2: Your code here.
+	// LAB2
 	if(!n) {
 		return nextfree;
 	}
@@ -258,7 +258,11 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
+
+	pages[0].pp_ref++;
 	for (i = 0; i < npages; i++) {
+		if( (i*PGSIZE >= IOPHYSMEM) && (i*PGSIZE < PADDR(bott_alloc(0))) )
+			continue;
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
@@ -281,7 +285,15 @@ struct PageInfo *
 page_alloc(int alloc_flags)
 {
 	// Fill this function in
-	return 0;
+	struct PageInfo *pp = page_free_list;
+
+	if(pp) {
+		if(alloc_flags && ALOC_ZERO)
+			memset(page2kva(pp), 0, PGSIZE);
+		page_free_list = pp->pp_link;
+		pp->pp_link = NULL;
+	}
+	return pp;
 }
 
 //
@@ -294,6 +306,11 @@ page_free(struct PageInfo *pp)
 	// Fill this function in
 	// Hint: You may want to panic if pp->pp_ref is nonzero or
 	// pp->pp_link is not NULL.
+	if (pp->pp_ref || pp->pp_link)
+		panic("page_free: pp_ref or pp_list not NULL\n");
+
+	pp->pp_link = page_free_list;
+	page_free_list = pp;
 }
 
 //
