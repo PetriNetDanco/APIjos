@@ -261,7 +261,7 @@ page_init(void)
 
 	pages[0].pp_ref++;
 	for (i = 0; i < npages; i++) {
-		if( (i*PGSIZE >= IOPHYSMEM) && (i*PGSIZE < PADDR(bott_alloc(0))) )
+		if( (i*PGSIZE >= IOPHYSMEM) && (i*PGSIZE < PADDR(boot_alloc(0))) )
 			continue;
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
